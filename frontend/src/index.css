@@ -1,128 +1,479 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@300..900&family=JetBrains+Mono:wght@300..800&display=swap');
 @import "tailwindcss";
 
-/* Custom theme overrides for Tailwind v4 */
+/* Define the custom dark variant for Tailwind CSS v4 class-based toggle */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Day Shift (Light Mode) Swiss Style Tokens */
+:root {
+  --background: #FFFFFF;
+  --foreground: #000000;
+  --card: #F2F2F2;
+  --muted-foreground: #666666;
+  --border: #000000;
+  --accent: #FF3000;
+  --accent-foreground: #FFFFFF;
+
+  --table-header-bg: #000000;
+  --table-header-text: #FFFFFF;
+
+  --map-bg: #FFFFFF;
+  --road-stroke: #000000;
+  --map-label: #000000;
+
+  --grid-color: rgba(0, 0, 0, 0.04);
+  --dot-color: rgba(0, 0, 0, 0.06);
+  --diagonal-color: rgba(0, 0, 0, 0.02);
+  --noise-opacity: 0.02;
+
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Night Shift (Dark Mode) Kinetic Typography Tokens */
+.dark {
+  /* =========================================================
+     TRAFFICVISION DARK MODE
+     PREMIUM TRAFFIC YELLOW EDITION
+     Swiss Command Center Theme
+     ========================================================= */
+
+  /* ---------------------------------------------------------
+     CORE BACKGROUNDS
+     --------------------------------------------------------- */
+  --background:            #000000;   /* Main app background */
+  --foreground:            #F7F8FA;   /* text-primary */
+  --card:                  #20242C;   /* Primary panels */
+  --card-secondary:        #2A303B;   /* Secondary surfaces */
+  --muted-foreground:      #C6CED9;   /* text-secondary */
+  --border:                #4D5563;
+  --accent:                #D9E300;   /* Premium Traffic Yellow */
+  --accent-foreground:     #0D0F12;   /* text-on-accent */
+
+  --surface:               #20242C;   /* Primary panels */
+  --surface-alt:           #2A303B;   /* Secondary surfaces */
+  --surface-elevated:      #313845;   /* Raised containers */
+  --surface-hover:         #333B48;   /* Hover state */
+
+  /* ---------------------------------------------------------
+     BORDERS & STRUCTURE
+     --------------------------------------------------------- */
+  --border-strong:         #626B7B;
+  --border-subtle:         #3A404D;
+  --divider:               #505A69;
+  --grid-lines:            #39414D;
+
+  /* ---------------------------------------------------------
+     TYPOGRAPHY
+     --------------------------------------------------------- */
+  --text-primary:          #F7F8FA;
+  --text-secondary:        #C6CED9;
+  --text-muted:            #9DA6B2;
+  --text-disabled:         #747E8C;
+
+  --text-on-accent:        #0D0F12;
+  --text-on-danger:        #FFFFFF;
+  --text-on-success:       #FFFFFF;
+
+  /* ---------------------------------------------------------
+     PREMIUM TRAFFIC YELLOW
+     --------------------------------------------------------- */
+  --accent-hover:          #E7F21A;
+  --accent-pressed:        #B4BE00;
+  --accent-subtle:         #323610;
+  --accent-soft:           #2B3012;
+
+  /* ---------------------------------------------------------
+     STATUS COLORS
+     --------------------------------------------------------- */
+  --success:               #47C76A;
+  --success-bg:            #173220;
+  --warning:               #D9E300;
+  --warning-bg:            #323610;
+  --critical:              #FF5B5B;
+  --critical-bg:           #3D1A1A;
+  --info:                  #60A5FA;
+  --info-bg:               #182A46;
+
+  /* ---------------------------------------------------------
+     TABLES
+     --------------------------------------------------------- */
+  --table-header-bg:       #2A303B;   /* surface-alt / table-header */
+  --table-header-text:     #F7F8FA;   /* text-primary / table-header-text */
+  --table-row:             #20242C;
+  --table-row-alt:         #242A34;
+  --table-row-hover:       #313845;
+  --table-border:          #4D5563;
+
+  /* ---------------------------------------------------------
+     SIDEBAR
+     --------------------------------------------------------- */
+  --sidebar-bg:            #000000;
+  --sidebar-border:        #4D5563;
+  --sidebar-item:          transparent;
+  --sidebar-item-hover:    #252B35;
+  --sidebar-active:        #D9E300;
+  --sidebar-active-text:   #0D0F12;
+
+  /* ---------------------------------------------------------
+     TOP NAVBAR
+     --------------------------------------------------------- */
+  --navbar-bg:             #000000;
+  --navbar-border:         #4D5563;
+  --search-bg:             #20242C;
+  --search-border:         #5A6474;
+
+  /* ---------------------------------------------------------
+     KPI CARDS
+     --------------------------------------------------------- */
+  --kpi-bg:                #20242C;
+  --kpi-border:            #4D5563;
+  --kpi-value:             #F7F8FA;
+  --kpi-label:             #C6CED9;
+  --kpi-highlight:         #D9E300;
+
+  /* ---------------------------------------------------------
+     LIVE DISPATCH TABLE
+     --------------------------------------------------------- */
+  --dispatch-bg:           #20242C;
+  --dispatch-header:       #2A303B;
+  --dispatch-highlight:    #D9E300;
+  --dispatch-hover:        #313845;
+
+  /* ---------------------------------------------------------
+     VEHICLE PLATES
+     --------------------------------------------------------- */
+  --plate-bg:              #D9E300;
+  --plate-text:            #111111;
+  --plate-hover:           #E7F21A;
+
+  /* ---------------------------------------------------------
+     VIOLATION TAGS
+     --------------------------------------------------------- */
+  --tag-phone-border:      #D9E300;
+  --tag-phone-text:        #D9E300;
+  --tag-speeding-border:   #D9E300;
+  --tag-speeding-text:     #D9E300;
+  --tag-seatbelt-border:   #D9E300;
+  --tag-seatbelt-text:     #D9E300;
+  --tag-triple-border:     #D9E300;
+  --tag-triple-text:       #D9E300;
+
+  /* ---------------------------------------------------------
+     REVIEW STATUS
+     --------------------------------------------------------- */
+  --status-pending:        #D9E300;
+  --status-approved:       #47C76A;
+  --status-rejected:       #FF5B5B;
+  --status-pending-bg:     #323610;
+  --status-approved-bg:    #173220;
+  --status-rejected-bg:    #3D1A1A;
+
+  /* ---------------------------------------------------------
+     GIS MAP
+     --------------------------------------------------------- */
+  --map-bg:                #000000;   /* --map-background */
+  --road-stroke:           #5C6675;   /* --map-road */
+  --map-label:             #C6CED9;   /* --text-secondary */
+  --map-background:        #000000;
+  --map-road:              #5C6675;
+  --map-road-major:        #707C8E;
+  --map-grid:              #343B47;
+  --map-marker:            #D9E300;
+  --map-marker-active:     #E7F21A;
+  --map-camera-online:     #47C76A;
+  --map-camera-offline:    #FF5B5B;
+
+  /* ---------------------------------------------------------
+     TELEMETRY TABLE
+     --------------------------------------------------------- */
+  --telemetry-bg:          #20242C;
+  --telemetry-header:      #2A303B;
+  --telemetry-online:      #47C76A;
+  --telemetry-warning:     #D9E300;
+  --telemetry-offline:     #FF5B5B;
+
+  /* ---------------------------------------------------------
+     INPUTS
+     --------------------------------------------------------- */
+  --input-bg:              #20242C;
+  --input-border:          #5A6474;
+  --input-text:            #F7F8FA;
+  --input-placeholder:     #9DA6B2;
+  --input-focus-border:    #D9E300;
+
+  /* ---------------------------------------------------------
+     BUTTONS
+     --------------------------------------------------------- */
+  --button-primary-bg:     #D9E300;
+  --button-primary-text:   #111111;
+  --button-primary-hover:  #E7F21A;
+  --button-secondary-bg:   transparent;
+  --button-secondary-text: #F7F8FA;
+  --button-secondary-border:#5A6474;
+
+  /* ---------------------------------------------------------
+     SCROLLBARS
+     --------------------------------------------------------- */
+  --scrollbar-track:       #20242C;
+  --scrollbar-thumb:       #4D5563;
+  --scrollbar-hover:       #626B7B;
+
+  /* ---------------------------------------------------------
+     SHADOWS
+     --------------------------------------------------------- */
+  --shadow-none:           none;
+
+  /* Grid layout overrides */
+  --grid-color: rgba(255, 255, 255, 0.015);
+  --dot-color: rgba(255, 255, 255, 0.025);
+  --diagonal-color: rgba(255, 255, 255, 0.01);
+  --noise-opacity: 0.035;
+
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
 @theme {
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 6px;
-  --radius-lg: 6px;
-  --radius-xl: 6px;
-  --radius-2xl: 6px;
-  --radius-3xl: 6px;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-  /* Strict Command Center Color Palette */
-  --color-bg-main: #0B1220;
-  --color-bg-panel: #111827;
-  --color-bg-accent: #1F2937;
+  /* Custom component tokens */
+  --color-table-header-bg: var(--table-header-bg);
+  --color-table-header-text: var(--table-header-text);
+  --color-map-bg: var(--map-bg);
+  --color-road-stroke: var(--road-stroke);
+  --color-map-label: var(--map-label);
 
-  --color-text-primary: #F9FAFB;
-  --color-text-secondary: #D1D5DB;
-  --color-text-muted: #9CA3AF;
-
-  --color-accent-blue: #3b82f6;
-  --color-status-green: #10b981;
-  --color-status-amber: #f59e0b;
-  --color-status-red: #ef4444;
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
+  --radius-full: 9999px;
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-display: var(--font-display);
 }
 
 body {
-  background-color: #0B1220;
-  color: #F9FAFB;
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: var(--font-sans);
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.4;
   margin: 0;
   padding: 0;
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
 }
 
-/* Dense styling utilities */
+/* Swiss CSS Patterns for Layered Depth */
+.swiss-grid-pattern {
+  background-image:
+    linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.swiss-dots {
+  background-image: radial-gradient(var(--dot-color) 1.2px, transparent 1.2px);
+  background-size: 16px 16px;
+}
+
+.swiss-diagonal {
+  background-image: repeating-linear-gradient(45deg, var(--diagonal-color), var(--diagonal-color) 1px, transparent 1px, transparent 8px);
+}
+
+.swiss-noise {
+  position: relative;
+}
+
+.swiss-noise::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: var(--noise-opacity);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Dynamic border classes to preserve identical lines in light & dark modes */
+.border-dynamic {
+  border: 2px solid var(--border);
+}
+
+.border-b-dynamic {
+  border-bottom: 2px solid var(--border);
+}
+
+.border-t-dynamic {
+  border-top: 2px solid var(--border);
+}
+
+.border-l-dynamic {
+  border-left: 2px solid var(--border);
+}
+
+.border-r-dynamic {
+  border-right: 2px solid var(--border);
+}
+
+/* Core layouts & visible borders */
 .panel {
-  background-color: #111827;
-  border: 1px solid #1F2937;
-  border-radius: 6px;
+  background-color: var(--background);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
 }
 
-/* Custom scrollbars - thin and clean */
+.panel-header {
+  border-bottom: 2px solid var(--border);
+  background-color: var(--background);
+  padding: 10px 14px;
+}
+
+/* Scrollbars - geometric and thin */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-::-webkit-scrollbar-track {
-  background: #0B1220;
-}
-::-webkit-scrollbar-thumb {
-  background: #1F2937;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #3b82f6;
+  width: 6px;
+  height: 6px;
 }
 
-/* Table dense cell sizes */
-table th, table td {
-  padding: 8px 12px !important;
-  font-size: 13px;
-  border-bottom: 1px solid #1F2937;
+::-webkit-scrollbar-track {
+  background: var(--card);
+  border-left: 1px solid var(--border);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--foreground);
+  border-radius: 0px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Swiss Tables - objective and high contrast */
+table {
+  border-collapse: collapse;
+  width: 100%;
 }
 
 table th {
-  background-color: #111827;
-  color: #9CA3AF;
-  font-weight: 600;
+  background-color: var(--table-header-bg) !important;
+  color: var(--table-header-text) !important;
+  font-weight: 900;
   text-transform: uppercase;
   font-size: 11px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  padding: 10px 12px !important;
+  border: 1px solid var(--border);
 }
 
-/* Input elements styling */
-input, select, textarea {
-  background-color: #1F2937 !important;
-  border: 1px solid #1f2937 !important;
-  color: #F9FAFB !important;
-  border-radius: 6px !important;
-  font-size: 13px !important;
-  padding: 6px 10px !important;
+table td {
+  padding: 8px 12px !important;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.15s ease;
+}
+
+table tr:hover td {
+  background-color: var(--card);
+}
+
+/* Inputs & Form Elements */
+input,
+select,
+textarea {
+  background-color: var(--background) !important;
+  border: 2px solid var(--border) !important;
+  color: var(--foreground) !important;
+  border-radius: var(--radius-md) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 6px 10px;
   outline: none;
-}
-
-input:focus, select:focus {
-  border-color: #3b82f6 !important;
-}
-
-/* Recharts styling tweaks for high density */
-.recharts-tooltip-wrapper {
-  outline: none !important;
-}
-.recharts-default-tooltip {
-  background-color: #111827 !important;
-  border: 1px solid #1F2937 !important;
-  border-radius: 6px !important;
-  font-size: 11px !important;
-}
-.recharts-legend-item-text {
-  color: #D1D5DB !important;
-  font-size: 11px !important;
-}
-.recharts-cartesian-grid line {
-  stroke: #1F2937 !important;
-}
-.recharts-text {
-  fill: #9CA3AF !important;
-  font-size: 10px !important;
   font-family: var(--font-mono);
+  transition: border-color 0.15s ease;
 }
 
-/* Animations for command centers */
-@keyframes scanning-line {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(100%); }
+.pl-search {
+  padding-left: 32px !important;
 }
 
-.scan-line {
-  height: 2px;
-  background: rgba(239, 68, 68, 0.4);
-  animation: scanning-line 3s infinite linear;
+input:focus,
+select:focus {
+  border-color: var(--accent) !important;
+}
+
+/* Recharts styling overrides */
+.recharts-default-tooltip {
+  background-color: var(--background) !important;
+  border: 2px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  font-family: var(--font-mono) !important;
+  color: var(--foreground) !important;
+}
+
+.recharts-cartesian-grid line {
+  stroke: var(--border) !important;
+  opacity: 0.15;
+}
+
+.recharts-text {
+  fill: var(--foreground) !important;
+  font-weight: 700;
+}
+
+.recharts-legend-item-text {
+  color: var(--foreground) !important;
+  font-weight: 700 !important;
+}
+
+/* GPU Accelerated CSS Marquee Animations */
+@keyframes marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee-slow {
+  display: flex;
+  width: max-content;
+  animation: marquee 50s linear infinite;
 }
