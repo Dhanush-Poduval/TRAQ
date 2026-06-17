@@ -3,6 +3,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { Sidebar } from "./components/Sidebar";
 import { Navbar } from "./components/Navbar";
 import { Login } from "./pages/Login";
+import { LandingPage } from "./pages/LandingPage";
 import { DashboardOverview } from "./pages/DashboardOverview";
 import { ViolationsFeed } from "./pages/ViolationsFeed";
 import { LicensePlateRecognition } from "./pages/LicensePlateRecognition";
@@ -13,12 +14,13 @@ import { MOCK_VIOLATIONS, MOCK_NOTIFICATIONS } from "./data/mockData";
 
 function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [showLanding, setShowLanding] = useState(true);
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedViolation, setSelectedViolation] = useState(null);
-  
+
   // Violations list state so updates reflect dynamically
   const [violations, setViolations] = useState(MOCK_VIOLATIONS);
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
@@ -176,9 +178,13 @@ function AppContent() {
     }
   };
 
+  if (showLanding) {
+    return <LandingPage onEnterDashboard={() => setShowLanding(false)} />;
+  }
+
   return (
-    <div className="min-h-screen flex bg-[#0B1220] text-[#F9FAFB] font-sans">
-      
+    <div className="min-h-screen flex bg-background text-foreground font-sans swiss-noise">
+
       {/* Sidebar Navigation */}
       <Sidebar
         activeTab={activeTab}
@@ -186,13 +192,13 @@ function AppContent() {
         collapsed={collapsed}
         setCollapsed={setCollapsed}
         onLogout={handleLogout}
+        onShowLanding={() => setShowLanding(true)}
       />
 
       {/* Main Body */}
       <div
-        className={`flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 bg-[#0B1220] ${
-          collapsed ? "pl-20" : "pl-20 md:pl-64"
-        }`}
+        className={`flex-1 flex flex-col min-w-0 min-h-screen transition-all duration-300 bg-background border-l-2 border-border ${collapsed ? "pl-20" : "pl-20 md:pl-64"
+          }`}
       >
         <Navbar
           activeTab={activeTab}
@@ -201,10 +207,11 @@ function AppContent() {
           notifications={notifications}
           onMarkAllRead={handleMarkAllRead}
           onLogout={handleLogout}
+          onShowLanding={() => setShowLanding(true)}
         />
 
         {/* Dynamic tab viewport */}
-        <main className="flex-1 p-4 w-full mx-auto bg-[#0B1220]">
+        <main className="flex-1 p-4 w-full mx-auto bg-background swiss-grid-pattern border-t-2 border-border">
           {renderTabContent()}
         </main>
       </div>

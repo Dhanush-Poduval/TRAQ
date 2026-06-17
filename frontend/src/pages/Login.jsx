@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { ShieldCheck, Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Lock, User, Eye, EyeOff, Loader2 } from "lucide-react";
+import logo from "../assets/logo.png";
 
 export const Login = ({ onLogin }) => {
   const [username, setUsername] = useState("grid_assessor");
@@ -38,8 +39,8 @@ export const Login = ({ onLogin }) => {
         
         {/* Hackathon / Branded Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 mb-4 shadow-xl shadow-blue-500/10">
-            <ShieldCheck className="w-8 h-8" />
+          <div className="inline-flex items-center justify-center w-28 h-28 rounded-full overflow-hidden mb-4">
+            <img src={logo} alt="TRAQ Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-3xl font-extrabold font-heading text-white tracking-tight">
             TrafficVision AI
