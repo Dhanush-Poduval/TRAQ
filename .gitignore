@@ -1,0 +1,5 @@
+.venv/
+*.pt
+traffic_project/*
+**/__pycache__/
+
