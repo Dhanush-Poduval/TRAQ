@@ -78,7 +78,7 @@ def update_plate(case_id: str, plate: str, db: Session = Depends(get_db)):
     return {"message": "Success"}
 
 # Background task for running the AI engine or fallback simulation
-def process_video_task(video_path: str, camera_id: str):
+def process_video_task(video_path: str, camera_id: str, inferred_infraction: str = "Auto-Detect (AI Model)"):
     try:
         from work_engine.run import run_video
         print(f"Starting AI video processing on {video_path}...")
@@ -96,33 +96,36 @@ def process_video_task(video_path: str, camera_id: str):
         db = SessionLocal()
         timestamp_sec = int(time.time())
         
-        demo_violations = [
-            {
-                "case_id": f"VIOL-{camera_id}-{timestamp_sec}-1",
-                "track_id": 105,
-                "time": "12.4",
+        if inferred_infraction == "Auto-Detect (AI Model)" or not inferred_infraction:
+            v_types = ["Helmet non-compliance", "Red-light violation"]
+        else:
+            v_types = [inferred_infraction]
+            
+        demo_violations = []
+        for i, vt in enumerate(v_types):
+            plate = "KA03EX5582" if vt == "Helmet non-compliance" else "KA51MB2020"
+            if vt == "Speeding":
+                plate = "HR55AN9921"
+            elif vt == "No Seatbelt":
+                plate = "MH12GP7731"
+            elif vt == "Phone Usage":
+                plate = "KA03MM8800"
+            elif vt == "Triple riding":
+                plate = "DL4CAF8821"
+            
+            demo_violations.append({
+                "case_id": f"VIOL-{camera_id}-{timestamp_sec}-{i+1}",
+                "track_id": 105 + i,
+                "time": str(12.4 + i*5),
                 "signal": camera_id,
-                "plate_ocr": "KA03EX5582",
-                "infraction": "Helmet non-compliance",
-                "conf": "94%",
-                "location": "KORAMANGALA JUNCTION",
+                "plate_ocr": plate,
+                "infraction": vt,
+                "conf": "94%" if i == 0 else "97%",
+                "location": f"{camera_id} JUNCTION",
                 "status": "PENDING REVIEW",
                 "video_url": "/static/evidence/clips/demo_clip.mp4"
-            },
-            {
-                "case_id": f"VIOL-{camera_id}-{timestamp_sec}-2",
-                "track_id": 108,
-                "time": "18.2",
-                "signal": camera_id,
-                "plate_ocr": "KA51MB2020",
-                "infraction": "Red-light violation",
-                "conf": "97%",
-                "location": "KORAMANGALA JUNCTION",
-                "status": "PENDING REVIEW",
-                "video_url": "/static/evidence/clips/demo_clip.mp4"
-            }
-        ]
-        
+            })
+            
         for data in demo_violations:
             if not db.query(models.Violation).filter(models.Violation.case_id == data["case_id"]).first():
                 new_v = models.Violation(**data)
@@ -132,7 +135,7 @@ def process_video_task(video_path: str, camera_id: str):
         print("Simulation database entries injected successfully.")
 
 @app.post("/api/upload")
-async def upload(camera_id: str = "CAM_01", file: UploadFile = File(...), bg: BackgroundTasks = None):
+async def upload(camera_id: str = "CAM_01", inferred_infraction: str = "Auto-Detect (AI Model)", file: UploadFile = File(...), bg: BackgroundTasks = None):
     # Save the file locally in backend/static/uploads
     filename = file.filename
     dest_path = os.path.join(STATIC_DIR, "uploads", filename)
@@ -142,7 +145,7 @@ async def upload(camera_id: str = "CAM_01", file: UploadFile = File(...), bg: Ba
         
     # Queue processing task in the background
     if bg:
-        bg.add_task(process_video_task, dest_path, camera_id)
+        bg.add_task(process_video_task, dest_path, camera_id, inferred_infraction)
         
     return {"status": "processing", "file": filename}
 

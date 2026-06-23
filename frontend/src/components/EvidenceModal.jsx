@@ -29,12 +29,20 @@ export const EvidenceModal = ({ violation, onClose, onUpdateStatus, onCorrectPla
             alt="Violation Frame"
             className="w-full h-full object-contain"
             onError={(e) => {
-              const typeUrl = `http://localhost:8000/static/sample_images/${encodeURIComponent(violation.violationType)}.jpg`;
-              if (e.target.src !== typeUrl) {
-                e.target.src = typeUrl;
-              } else {
-                setImageLoadError(true);
+              if (violation.violationType === "No Helmet") {
+                const fallbackUrl = "http://localhost:8000/static/sample_images/VIOL-2026-001.jpg";
+                if (e.target.src !== fallbackUrl) {
+                  e.target.src = fallbackUrl;
+                  return;
+                }
+              } else if (violation.violationType === "No Seatbelt") {
+                const fallbackUrl = "http://localhost:8000/static/sample_images/VIOL-2026-002.jpg";
+                if (e.target.src !== fallbackUrl) {
+                  e.target.src = fallbackUrl;
+                  return;
+                }
               }
+              setImageLoadError(true);
             }}
           />
         </div>

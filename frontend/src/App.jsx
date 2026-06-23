@@ -52,11 +52,23 @@ function AppContent() {
             let confVal = parseFloat(v.conf) / 100;
             if (isNaN(confVal)) confVal = 0.95;
 
-            // Simulated timestamp
-            const mockTime = new Date();
-            const offsetSec = parseFloat(v.time) || 0;
-            mockTime.setSeconds(mockTime.getSeconds() - offsetSec);
-            const timestamp = mockTime.toISOString();
+            // Parse actual timestamp from case_id if available, otherwise fall back to offset
+            let timestamp;
+            const parts = v.case_id.split("-");
+            if (parts.length >= 4 && parts[0] === "VIOL") {
+              const tsPart = parts[parts.length - 2];
+              const ts = parseInt(tsPart, 10);
+              if (!isNaN(ts) && ts > 1000000000) {
+                timestamp = new Date(ts * 1000).toISOString();
+              }
+            }
+            
+            if (!timestamp) {
+              const mockTime = new Date();
+              const offsetSec = parseFloat(v.time) || 0;
+              mockTime.setSeconds(mockTime.getSeconds() - offsetSec);
+              timestamp = mockTime.toISOString();
+            }
 
             return {
               id: v.case_id,
@@ -83,8 +95,25 @@ function AppContent() {
               video_url: v.video_url ? (v.video_url.startsWith("http") ? v.video_url : `http://localhost:8000${v.video_url}`) : null
             };
           });
-          // Combine with mock violations
-          setViolations([...mapped, ...MOCK_VIOLATIONS]);
+          // Combine with mock violations and sort by timestamp descending (newest first)
+          const combined = [...mapped, ...MOCK_VIOLATIONS];
+          combined.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+          
+          // Filter to ensure unique license plates (keeping the newest violation for each plate)
+          const uniqueCombined = [];
+          const seenPlates = new Set();
+          for (const v of combined) {
+            const plate = v.licensePlate ? v.licensePlate.trim().toUpperCase() : "";
+            if (plate && plate !== "UNKNOWN") {
+              if (!seenPlates.has(plate)) {
+                seenPlates.add(plate);
+                uniqueCombined.push(v);
+              }
+            } else {
+              uniqueCombined.push(v);
+            }
+          }
+          setViolations(uniqueCombined);
         } else {
           setViolations(MOCK_VIOLATIONS);
         }

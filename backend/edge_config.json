@@ -1,0 +1,64 @@
+{
+  "vehicleThreshold": 0.75,
+  "violationThreshold": 0.8,
+  "ocrThreshold": 0.8,
+  "streamFPS": 30,
+  "signalConfigs": {
+    "CAM-01": {
+      "name": "Silk Board Jnc - North",
+      "mode": "Strict",
+      "speedLimit": 60,
+      "redLight": true,
+      "safetyGear": true,
+      "tripleRiding": true
+    },
+    "CAM-02": {
+      "name": "Silk Board Jnc - East",
+      "mode": "Standard",
+      "speedLimit": 60,
+      "redLight": true,
+      "safetyGear": true,
+      "tripleRiding": true
+    },
+    "CAM-04": {
+      "name": "Koramangala 80ft Rd",
+      "mode": "Standard",
+      "speedLimit": 50,
+      "redLight": false,
+      "safetyGear": true,
+      "tripleRiding": true
+    },
+    "CAM-07": {
+      "name": "Whitefield Main Rd",
+      "mode": "Lenient",
+      "speedLimit": 60,
+      "redLight": true,
+      "safetyGear": true,
+      "tripleRiding": false
+    },
+    "CAM-09": {
+      "name": "Indiranagar 100ft Rd",
+      "mode": "Lenient",
+      "speedLimit": 44,
+      "redLight": true,
+      "safetyGear": true,
+      "tripleRiding": true
+    },
+    "CAM-12": {
+      "name": "Outer Ring Road - Cam 12",
+      "mode": "Strict",
+      "speedLimit": 80,
+      "redLight": false,
+      "safetyGear": true,
+      "tripleRiding": false
+    },
+    "CAM-18": {
+      "name": "Electronic City Expwy",
+      "mode": "Standard",
+      "speedLimit": 80,
+      "redLight": false,
+      "safetyGear": true,
+      "tripleRiding": false
+    }
+  }
+}

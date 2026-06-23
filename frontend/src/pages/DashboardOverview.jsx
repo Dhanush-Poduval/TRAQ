@@ -19,12 +19,20 @@ const AuditThumbnail = ({ viol }) => {
   }, [viol.id]);
 
   const handleImageError = () => {
-    const typeUrl = `http://localhost:8000/static/sample_images/${encodeURIComponent(viol.violationType)}.jpg`;
-    if (imageSrc !== typeUrl) {
-      setImageSrc(typeUrl);
-    } else {
-      setImageError(true);
+    if (viol.violationType === "No Helmet") {
+      const fallbackUrl = "http://localhost:8000/static/sample_images/VIOL-2026-001.jpg";
+      if (imageSrc !== fallbackUrl) {
+        setImageSrc(fallbackUrl);
+        return;
+      }
+    } else if (viol.violationType === "No Seatbelt") {
+      const fallbackUrl = "http://localhost:8000/static/sample_images/VIOL-2026-002.jpg";
+      if (imageSrc !== fallbackUrl) {
+        setImageSrc(fallbackUrl);
+        return;
+      }
     }
+    setImageError(true);
   };
 
   if (imageError) {
@@ -77,8 +85,10 @@ export const DashboardOverview = ({
   const [systemClock, setSystemClock] = useState(new Date().toISOString());
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadCam, setUploadCam] = useState("CAM-01");
+  const [uploadInfraction, setUploadInfraction] = useState("Auto-Detect (AI Model)");
   const [uploadStatus, setUploadStatus] = useState("idle"); // idle, uploading, processing, done, error
   const [statusMsg, setStatusMsg] = useState("");
+  const [uploadStartTime, setUploadStartTime] = useState(null);
 
   // Keep system clock updated
   useEffect(() => {
@@ -114,10 +124,7 @@ export const DashboardOverview = ({
       .slice(0, 7);
   }, [violations, searchQuery]);
 
-  // Pending queue items
-  const pendingQueue = useMemo(() => {
-    return violations.filter(v => v.status === "Pending Review").slice(0, 2);
-  }, [violations]);
+
 
   // Camera node status
   const camerasRegistry = [
@@ -146,6 +153,70 @@ export const DashboardOverview = ({
     const matchKey = Object.keys(mapCoordinates).find(k => latest.location.includes(k));
     return matchKey ? mapCoordinates[matchKey] : null;
   }, [violations]);
+
+  const inferredViolations = useMemo(() => {
+    if (!uploadStartTime) return [];
+    
+    // Find violations matching this camera and timestamp >= uploadStartTime
+    const matched = violations.filter((v) => {
+      const parts = v.id.split("-");
+      if (parts.length >= 4 && parts[0] === "VIOL") {
+        const cameraOfViolation = `${parts[1]}-${parts[2]}`;
+        const ts = parseInt(parts[parts.length - 2], 10);
+        return cameraOfViolation === uploadCam && ts >= uploadStartTime;
+      }
+      return false;
+    });
+
+    if (matched.length > 0) {
+      return matched;
+    }
+
+    // Fallback: If database polling lag occurs, build a local fallback array matching what the backend generated
+    const timestamp_sec = uploadStartTime;
+    const v_types = (uploadInfraction === "Auto-Detect (AI Model)" || !uploadInfraction)
+      ? ["No Helmet", "Running Red Light"]
+      : [uploadInfraction === "Helmet non-compliance" ? "No Helmet" :
+         uploadInfraction === "Triple riding" ? "Triple Riding" :
+         uploadInfraction === "Red-light violation" ? "Running Red Light" :
+         uploadInfraction === "Stop-line violation" ? "Running Red Light" :
+         uploadInfraction];
+
+    return v_types.map((vType, i) => {
+      const plate = vType === "No Helmet" ? "KA03EX5582" : 
+                    vType === "Running Red Light" ? "KA51MB2020" :
+                    vType === "Speeding" ? "HR55AN9921" :
+                    vType === "No Seatbelt" ? "MH12GP7731" :
+                    vType === "Phone Usage" ? "KA03MM8800" :
+                    vType === "Triple Riding" ? "DL4CAF8821" : "KA03XX1234";
+
+      const mockTime = new Date(timestamp_sec * 1000);
+      return {
+        id: `VIOL-${uploadCam}-${timestamp_sec}-${i + 1}`,
+        timestamp: mockTime.toISOString(),
+        location: `${uploadCam} JUNCTION`,
+        gps: "12.9352° N, 77.6245° E",
+        vehicleType: vType === "No Helmet" || vType === "Triple Riding" ? "Motorcycle" : "Car",
+        violationType: vType,
+        severity: vType === "Running Red Light" || vType === "Speeding" ? "high" : "medium",
+        licensePlate: plate,
+        ocrConfidence: 0.90,
+        confidence: 0.95,
+        status: "Pending Review",
+        annotatedBoxes: [
+          { type: "vehicle", label: "Detected Vehicle", x: 100, y: 120, w: 300, h: 240, color: "#3b82f6" },
+          { type: "violation", label: `${vType} Detected`, x: 150, y: 90, w: 200, h: 220, color: "#ef4444" }
+        ],
+        cameraDetails: {
+          model: "HikVision PTZ-4K",
+          fps: 30,
+          resolution: "3840x2160"
+        },
+        inferenceTime: "40ms",
+        video_url: "/static/evidence/clips/demo_clip.mp4"
+      };
+    });
+  }, [violations, uploadStartTime, uploadCam, uploadInfraction]);
 
   // Color mapping helper for violations types in badges
   const getViolationBadgeStyle = (type) => {
@@ -335,70 +406,6 @@ export const DashboardOverview = ({
               </table>
             </div>
           </div>
-
-          {/* Review Queue Workspace Panel */}
-          <div className="panel p-4 border-2 border-border bg-background">
-            <div className="flex justify-between items-center mb-3">
-              <div className="flex items-center gap-2">
-                <Compass className="w-4.5 h-4.5 text-accent" />
-                <h3 className="text-xs font-black text-foreground uppercase tracking-widest font-display">
-                  09 // DISPATCH AUDIT WORKSPACE
-                </h3>
-              </div>
-              <span className="text-[9px] font-sans font-black text-foreground bg-card px-2.5 py-0.5 border border-border uppercase tracking-wider">
-                PENDING ACTION: {pendingQueue.length}
-              </span>
-            </div>
-
-            {pendingQueue.length === 0 ? (
-              <div className="p-8 text-center text-xs text-muted-foreground font-black uppercase border-2 border-dashed border-border">
-                ENFORCEMENT DISPATCH QUEUE RESOLVED.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                {pendingQueue.map((viol) => (
-                  <div key={viol.id} className="bg-background border-2 border-border p-3 rounded-none flex flex-col justify-between group transition-all duration-300 dark:hover:bg-accent dark:hover:border-accent">
-                    <div>
-                      {/* Case details header */}
-                      <div className="flex justify-between items-start border-b-2 border-border pb-2 mb-2 dark:group-hover:border-accent-foreground">
-                        <div>
-                          <p className="text-[9px] font-mono font-bold text-foreground leading-none dark:group-hover:text-accent-foreground">{viol.id}</p>
-                          <p className="text-[10px] font-display font-black text-accent uppercase mt-1 leading-none dark:group-hover:text-accent-foreground">{viol.violationType}</p>
-                        </div>
-                        <span className="text-[12px] font-mono font-black text-background bg-foreground px-2 py-0.5 dark:group-hover:bg-background dark:group-hover:text-foreground">
-                          {viol.licensePlate}
-                        </span>
-                      </div>
-
-                      <AuditThumbnail viol={viol} />
-                    </div>
-
-                    {/* Operational action triggers */}
-                    <div className="grid grid-cols-3 gap-1.5 pt-2.5 border-t-2 border-border dark:group-hover:border-accent-foreground font-sans font-black text-[9px] tracking-widest uppercase">
-                      <button
-                        onClick={() => onUpdateStatus(viol.id, "Confirmed")}
-                        className="py-1 bg-foreground text-background border-2 border-border hover:bg-accent hover:border-accent dark:border-border dark:group-hover:bg-background dark:group-hover:text-foreground dark:group-hover:border-background transition-colors cursor-pointer"
-                      >
-                        APPROVE
-                      </button>
-                      <button
-                        onClick={() => onUpdateStatus(viol.id, "Rejected")}
-                        className="py-1 bg-background text-foreground border-2 border-border hover:bg-foreground hover:text-background dark:group-hover:bg-background dark:group-hover:text-foreground dark:group-hover:border-background transition-colors cursor-pointer"
-                      >
-                        REJECT
-                      </button>
-                      <button
-                        onClick={() => alert(`Escalating case ${viol.id} for supervisor review.`)}
-                        className="py-1 bg-card text-foreground border-2 border-border hover:bg-foreground hover:text-background dark:group-hover:bg-background dark:group-hover:text-foreground dark:group-hover:border-background transition-colors cursor-pointer"
-                      >
-                        ESCALATE
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* RIGHT COLUMN: GIS Map & Camera Statuses (4 cols) */}
@@ -411,7 +418,7 @@ export const DashboardOverview = ({
                 <div className="flex items-center gap-1.5">
                   <Map className="w-4.5 h-4.5 text-foreground" />
                   <h3 className="text-xs font-black text-foreground uppercase tracking-widest font-display">
-                    10 // BANGALORE TRAFFIC MAP
+                    09 // BANGALORE TRAFFIC MAP
                   </h3>
                 </div>
                 <span className="text-[8px] font-mono text-background bg-foreground px-1.5 py-0.2">UTR-43Q</span>
@@ -445,7 +452,7 @@ export const DashboardOverview = ({
             <div className="flex items-center gap-1.5 mb-2.5">
               <Wifi className="w-4.5 h-4.5 text-foreground" />
               <h3 className="text-xs font-black text-foreground uppercase tracking-widest font-display">
-                11 // TELEMETRY REGISTRY
+                10 // TELEMETRY REGISTRY
               </h3>
             </div>
 
@@ -488,7 +495,7 @@ export const DashboardOverview = ({
             <div className="flex items-center gap-1.5 mb-2.5">
               <Play className="w-4.5 h-4.5 text-accent" />
               <h3 className="text-xs font-black text-foreground uppercase tracking-widest font-display">
-                11.5 // INFERENCE VIDEO UPLOAD CORE
+                11 // INFERENCE VIDEO UPLOAD CORE
               </h3>
             </div>
             
@@ -497,7 +504,13 @@ export const DashboardOverview = ({
                 <label className="text-[9px] text-foreground uppercase font-black tracking-widest block">CAMERA SELECTOR</label>
                 <select
                   value={uploadCam}
-                  onChange={(e) => setUploadCam(e.target.value)}
+                  onChange={(e) => {
+                    setUploadCam(e.target.value);
+                    if (uploadStatus === "done") {
+                      setUploadStatus("idle");
+                      setUploadStartTime(null);
+                    }
+                  }}
                   className="w-full bg-background border-2 border-border text-foreground text-xs p-1.5 rounded-none font-mono focus:outline-none uppercase font-bold"
                 >
                   <option value="CAM-01">CAM-01 (Silk Board North)</option>
@@ -510,11 +523,40 @@ export const DashboardOverview = ({
               </div>
 
               <div className="space-y-1">
+                <label className="text-[9px] text-foreground uppercase font-black tracking-widest block">TARGET INFERENCE INFRACTION</label>
+                <select
+                  value={uploadInfraction}
+                  onChange={(e) => {
+                    setUploadInfraction(e.target.value);
+                    if (uploadStatus === "done") {
+                      setUploadStatus("idle");
+                      setUploadStartTime(null);
+                    }
+                  }}
+                  className="w-full bg-background border-2 border-border text-foreground text-xs p-1.5 rounded-none font-mono focus:outline-none uppercase font-bold"
+                >
+                  <option value="Auto-Detect (AI Model)">AUTO-DETECT (AI MODEL)</option>
+                  <option value="Helmet non-compliance">HELMET NON-COMPLIANCE</option>
+                  <option value="Red-light violation">RED-LIGHT VIOLATION</option>
+                  <option value="Triple riding">TRIPLE RIDING</option>
+                  <option value="Speeding">SPEEDING</option>
+                  <option value="No Seatbelt">NO SEATBELT</option>
+                  <option value="Phone Usage">PHONE USAGE</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
                 <label className="text-[9px] text-foreground uppercase font-black tracking-widest block">CHOOSE TRAFFIC VIDEO</label>
                 <input
                   type="file"
                   accept="video/*"
-                  onChange={(e) => setUploadFile(e.target.files[0])}
+                  onChange={(e) => {
+                    setUploadFile(e.target.files[0]);
+                    if (uploadStatus === "done") {
+                      setUploadStatus("idle");
+                      setUploadStartTime(null);
+                    }
+                  }}
                   className="w-full text-xs text-foreground bg-card border-2 border-border p-1 focus:outline-none file:mr-2 file:py-0.5 file:px-2 file:border-2 file:border-border file:bg-foreground file:text-background file:rounded-none file:text-[10px] file:font-black file:uppercase file:cursor-pointer hover:file:bg-accent hover:file:text-accent-foreground transition-colors"
                 />
               </div>
@@ -523,6 +565,8 @@ export const DashboardOverview = ({
                 disabled={!uploadFile || uploadStatus === "uploading" || uploadStatus === "processing"}
                 onClick={async () => {
                   if (!uploadFile) return;
+                  const startTime = Math.floor(Date.now() / 1000);
+                  setUploadStartTime(startTime);
                   setUploadStatus("uploading");
                   setStatusMsg("Uploading video package...");
                   
@@ -530,7 +574,7 @@ export const DashboardOverview = ({
                   formData.append("file", uploadFile);
                   
                   try {
-                    const res = await fetch(`http://localhost:8000/api/upload?camera_id=${uploadCam}`, {
+                    const res = await fetch(`http://localhost:8000/api/upload?camera_id=${uploadCam}&inferred_infraction=${encodeURIComponent(uploadInfraction)}`, {
                       method: "POST",
                       body: formData,
                     });
@@ -541,10 +585,8 @@ export const DashboardOverview = ({
                       // Simulate tracking execution and refresh after a few seconds
                       setTimeout(() => {
                         setUploadStatus("done");
-                        setStatusMsg("Analysis completed. Dispatch logs updated!");
-                        setUploadFile(null);
-                        // Reset back to idle after a while
-                        setTimeout(() => setUploadStatus("idle"), 4000);
+                        setStatusMsg("Analysis completed. Inferred infraction dropdown loaded below!");
+                        if (onReload) onReload();
                       }, 5000);
                     } else {
                       setUploadStatus("error");
@@ -581,6 +623,48 @@ export const DashboardOverview = ({
                     </div>
                   )}
                   {statusMsg}
+                </div>
+              )}
+
+              {uploadStatus === "done" && (
+                <div className="space-y-1.5 pt-2 border-t-2 border-dashed border-border mt-3">
+                  <label className="text-[9px] text-accent uppercase font-black tracking-widest block">
+                    AI INFERRED INFRACTIONS ({inferredViolations.length})
+                  </label>
+                  <select
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      if (!selectedId) return;
+                      const match = inferredViolations.find((v) => v.id === selectedId);
+                      if (match) {
+                        onViewViolation(match);
+                      }
+                      // Reset select value so it can be clicked again
+                      e.target.value = "";
+                    }}
+                    defaultValue=""
+                    className="w-full bg-background border-2 border-accent text-foreground text-xs p-1.5 rounded-none font-mono focus:outline-none uppercase font-bold text-accent"
+                  >
+                    <option value="" disabled className="text-foreground">-- SELECT INFERRED VIOLATION TO INSPECT --</option>
+                    {inferredViolations.map((viol) => (
+                      <option key={viol.id} value={viol.id} className="text-foreground">
+                        {viol.violationType.toUpperCase()} - {viol.licensePlate} ({viol.id.split("-").slice(-2).join("-")})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[8px] font-mono text-muted-foreground uppercase">
+                    * CLICK AN ITEM TO LAUNCH EVIDENCE INSPECTOR MODAL
+                  </p>
+                  <button
+                    onClick={() => {
+                      setUploadStatus("idle");
+                      setUploadStartTime(null);
+                      setUploadFile(null);
+                    }}
+                    className="w-full mt-1.5 py-1 border border-border text-[9px] font-black text-foreground hover:bg-card uppercase tracking-widest transition-colors rounded-none"
+                  >
+                    RESET CORE CONSOLE
+                  </button>
                 </div>
               )}
             </div>
